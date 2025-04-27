@@ -9,3 +9,5 @@ git submodule update --init --recursive
 ```bash
 ./build.sh
 ```
+
+Nexus: https://www.nexusmods.com/oblivionremastered/mods/1035
