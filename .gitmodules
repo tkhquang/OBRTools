@@ -1,0 +1,6 @@
+[submodule "NoCarryWeight/external/obse64"]
+	path = NoCarryWeight/external/obse64
+	url = https://github.com/ianpatt/obse64.git
+[submodule "NoCarryWeight/external/minhook"]
+	path = NoCarryWeight/external/minhook
+	url = https://github.com/TsudaKageyu/minhook.git
