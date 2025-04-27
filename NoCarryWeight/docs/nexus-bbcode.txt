@@ -69,9 +69,9 @@ Oblivion Remastered installation
 [/code]
 
 [size=5]Comparison with Other Solutions[/size]
-The [url=https://www.nexusmods.com/oblivionremastered/mods/48]Unlimited Carry Weight[/url] mod by bumbum2478 also resolves the carry weight issue, but uses a different approach:
+The [url=https://www.nexusmods.com/oblivionremastered/mods/48]Carry Weight Modifier[/url] mod by bumbum2478 also resolves the carry weight issue, but uses a different approach:
 [list]
-[*] Their mod: Uses an ESP plugin that modifies game records and requires Plugin.txt updates
+[*] Their mod: Uses an ESP plugin that modifies game records (adds negative weight values to the lockpicks) and requires Plugin.txt updates
 [*] This mod: Uses memory injection and hooks directly into the game's carry weight function
 [/list]
 
