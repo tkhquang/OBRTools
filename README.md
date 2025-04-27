@@ -5,7 +5,7 @@ A collection of mods for Oblivion Remastered that enhance gameplay and add new f
 ## Available Mods
 
 ### [NoCarryWeight](NoCarryWeight/)
-A lightweight mod that adds a hotkey to toggle between first-person and third-person camera views in Oblivion Remastered.
+This mod removes carry weight limitations from Oblivion Remastered by directly hooking into the game's memory.
 
 ## Installation
 
