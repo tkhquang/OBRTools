@@ -16,56 +16,61 @@ This mod removes carry weight limitations from Oblivion Remastered by directly h
 [list]
 [*] Oblivion Remastered (Steam version tested)
 [*] For DLL version: [url=https://www.nexusmods.com/oblivionremastered/mods/282]OBSE64[/url]
+[*] For ASI version: An ASI loader (not included - see installation instructions)
 [/list]
 
 [size=5]Installation[/size]
 
 [size=4]Option 1: ASI Loader Version[/size]
-1. Download the ASI version
-2. Extract all files to your game directory:
-   [code]<Oblivion Remastered installation folder>/OblivionRemastered/Binaries/Win64/[/code]
-3. Launch the game and enjoy unlimited carry weight!
+1. If you don't already have an ASI loader installed, download one from [url=https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases]Ultimate ASI Loader releases[/url]
+   - Choose the Win64 version of one of these files: [url=https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/x64-latest/dsound-x64.zip][b]dsound.dll[/b][/url], [url=https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/x64-latest/xinput1_3-x64.zip][b]xinput1_3.dll[/b][/url], [url=https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/x64-latest/winhttp-x64.zip][b]winhttp.dll[/b][/url], or [url=https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/x64-latest/winmm-x64.zip][b]winmm.dll[/b][/url]
+   - Typically, [b][url=https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/x64-latest/xinput1_3-x64.zip][b]xinput1_3.dll[/b][/url][/b] or [url=https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/x64-latest/dsound-x64.zip][b]dsound.dll[/b][/url]﻿ would do for this game
+   - Place your chosen ASI loader DLL in: [code]<Oblivion Remastered installation folder>/OblivionRemastered/Binaries/Win64/[/code]
+
+2. Download the ASI version of this mod
+3. Extract the ASI file to your game directory:
+   [code]<Oblivion Remastered installation folder>/OblivionRemastered/Binaries/Win64/[/code]
+4. Launch the game.
+
+[b][u]Note:[/u][/b] If you don't see the [b]OBR-NoCarryWeight.log[/b] file created in the same directory after launching the game, the ASI loader isn't working. Try renaming your chosen DLL to one of the other variants until you find one that works with your game.
 
 [size=4]Option 2: OBSE64 Plugin Version[/size]
 1. Install [url=https://www.nexusmods.com/oblivionremastered/mods/282]OBSE64[/url] if you haven't already
 2. Download the DLL version
 3. Extract the DLL file to:
-   [code]<Oblivion Remastered installation folder>/OblivionRemastered/Binaries/Win64/OBSE/Plugins/[/code]
+   [code]<Oblivion Remastered installation folder>/OblivionRemastered/Binaries/Win64/OBSE/Plugins/[/code]
 4. Launch the game through the OBSE launcher
 
 [size=5]Installation Folder Structure[/size]
 [code]
 ASI Version (What you'll download):
 OBR-NoCarryWeight_ASI.zip
-├── OBR-NoCarryWeight.asi    # The mod itself
-├── dsound.dll               # Ultimate ASI Loader (included for convenience)
-├── README.txt               # Documentation
+├── OBR-NoCarryWeight.asi    # The mod itself
 └── THIRD-PARTY-LICENSES.txt # Third-party license information
 
 DLL Version (What you'll download):
 OBR-NoCarryWeight_OBSE.zip
-├── OBR-NoCarryWeight.dll    # The OBSE plugin version
-├── README.txt               # Documentation
+├── OBR-NoCarryWeight.dll    # The OBSE plugin version
 └── THIRD-PARTY-LICENSES.txt # Third-party license information
 
 Where to place ASI version:
 Oblivion Remastered installation
 └── OblivionRemastered
-   └── Binaries
-      └── Win64                    # Copy all ASI files here
-          ├── OBR-NoCarryWeight.asi  ✓
-          ├── dsound.dll             ✓
-          ├── OblivionRemastered-Win64-Shipping.exe (original game file)
-          └── ...                    (other game files)
+   └── Binaries
+      └── Win64                    # Copy ASI file here
+          ├── OBR-NoCarryWeight.asi  ✓
+          ├── dsound.dll (or other ASI loader - download separately)
+          ├── OblivionRemastered-Win64-Shipping.exe (original game file)
+          └── ...                    (other game files)
 
 Where to place DLL version:
 Oblivion Remastered installation
 └── OblivionRemastered
-   └── Binaries
-      └── Win64
-          └── OBSE
-             └── Plugins            # Copy DLL file here
-                 └── OBR-NoCarryWeight.dll  ✓
+   └── Binaries
+      └── Win64
+          └── OBSE
+             └── Plugins            # Copy DLL file here
+                 └── OBR-NoCarryWeight.dll  ✓
 [/code]
 
 [size=5]Comparison with Other Solutions[/size]
@@ -97,6 +102,7 @@ If you encounter issues:
 
 [size=5]Known Issues[/size]
 [list]
+[*] [color=red][b]IMPORTANT: If you previously used a negative weight solution mod (like Carry Weight Modifier), you may need to reset your inventory. First, try dropping all lockpicks. If that doesn't work, place your entire inventory into a chest, save, then retrieve all items to reset the weight calculation.[/b][/color]
 [*] Currently only tested with the Steam version of the game
 [*] May need updates after game patches (pattern-based approach)
 [/list]
