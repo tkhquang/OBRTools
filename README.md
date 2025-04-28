@@ -4,7 +4,8 @@ A collection of mods for Oblivion Remastered that enhance gameplay and add new f
 
 ## Available Mods
 
-### [NoCarryWeight](NoCarryWeight/)
+### [No Carry Weight - ASI or OBSE Plugin](NoCarryWeight/)
+
 This mod removes carry weight limitations from Oblivion Remastered by directly hooking into the game's memory.
 
 ## Installation
