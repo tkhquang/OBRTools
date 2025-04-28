@@ -53,7 +53,7 @@ extern "C"
 {
     __declspec(dllexport) OBSEPluginVersionData OBSEPlugin_Version = {
         OBSEPluginVersionData::kVersion,                         // Structure version
-        1,                                                       // Plugin version (0.1.0)
+        2,                                                       // Plugin version (0.2.0)
         "No Carry Weight",                                       // Plugin name
         "tkhquang",                                              // Author name
         OBSEPluginVersionData::kAddressIndependence_Signatures,  // Signature-based address independence

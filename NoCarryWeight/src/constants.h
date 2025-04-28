@@ -6,6 +6,7 @@
 #define CONSTANTS_H
 
 #include <string>
+#include <array>
 #include "version.h"
 #include "logger.h"
 
@@ -35,8 +36,11 @@ namespace Constants
     // Default configuration values
     constexpr enum LogLevel DEFAULT_LOG_LEVEL = LOG_INFO;
 
-    // Target game module
-    constexpr const char *MODULE_NAME = "OblivionRemastered-Win64-Shipping.exe";
+    // Target game modules - array of possible module names to try
+    constexpr std::array<const char *, 2> MODULE_NAMES = {
+        "OblivionRemastered-Win64-Shipping.exe", // Steam version
+        "OblivionRemastered-WinGDK-Shipping.exe" // Gamepass version
+    };
 
     // AOB pattern for the weight calculation function prologue
     // Identifies the function at OblivionRemastered-Win64-Shipping.exe+6666BF0

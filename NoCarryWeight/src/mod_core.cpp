@@ -49,12 +49,21 @@ bool InitializeMod()
         return false;
     }
 
-    // Get the module handle and information
-    g_GameHandle = GetModuleHandleA(Constants::MODULE_NAME);
+    // Try to find the game module - try each possible module name in sequence
+    logger.log(LOG_INFO, "Looking for game executable...");
+    for (const char *moduleName : Constants::MODULE_NAMES)
+    {
+        g_GameHandle = GetModuleHandleA(moduleName);
+        if (g_GameHandle)
+        {
+            logger.log(LOG_INFO, "Game module found: " + std::string(moduleName));
+            break;
+        }
+    }
 
     if (!g_GameHandle)
     {
-        logger.log(LOG_ERROR, "Failed to get module handle");
+        logger.log(LOG_ERROR, "Failed to get module handle for any supported game version");
         return false;
     }
 
