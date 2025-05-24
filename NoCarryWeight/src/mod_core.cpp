@@ -43,7 +43,7 @@ void HookFunction(void *playerData)
 bool InitializeMod()
 {
     // Configure DetourModKit Logger
-    DetourModKit::Logger::configure("OBR-NoCarryWeight", "OBR-NoCarryWeight.log", "%Y-%m-%d %H:%M:%S");
+    DetourModKit::Logger::configure(Constants::MOD_NAME, Constants::getLogFilename(), Constants::LOG_TIMESTAMP_FORMAT);
     auto &logger = DetourModKit::Logger::getInstance();
     logger.setLogLevel(DetourModKit::LOG_INFO);
 

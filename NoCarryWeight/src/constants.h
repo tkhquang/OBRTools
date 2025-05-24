@@ -16,6 +16,27 @@ namespace Constants
     constexpr const char *MOD_NAME = Version::MOD_NAME;
     constexpr const char *MOD_WEBSITE = Version::REPOSITORY;
 
+    // File extensions
+    constexpr const char *INI_FILE_EXTENSION = ".ini";
+    constexpr const char *LOG_FILE_EXTENSION = ".log";
+
+    constexpr const char *LOG_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S";
+
+    // Get full configuration filename
+    inline std::string getConfigFilename()
+    {
+        return std::string(MOD_NAME) + INI_FILE_EXTENSION;
+    }
+
+    // Get full log filename
+    inline std::string getLogFilename()
+    {
+        return std::string(MOD_NAME) + LOG_FILE_EXTENSION;
+    }
+
+    // Default configuration values
+    constexpr enum LogLevel DEFAULT_LOG_LEVEL = LOG_INFO;
+
     // Target game modules - array of possible module names to try
     constexpr std::array<const char *, 2> MODULE_NAMES = {
         "OblivionRemastered-Win64-Shipping.exe", // Steam version
