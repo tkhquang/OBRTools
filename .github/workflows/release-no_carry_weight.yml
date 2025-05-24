@@ -109,7 +109,7 @@ jobs:
             Write-Output "Creating ASI package with: OBR-NoCarryWeight.asi"
             New-Item -ItemType Directory -Path "package_asi" -Force
             Copy-Item -Path "build\OBR-NoCarryWeight.asi" -Destination "package_asi\"
-            Copy-Item -Path "README.md" -Destination "package_asi\" -ErrorAction SilentlyContinue
+            Copy-Item -Path "OBR-NoCarryWeight_Acknowledgements.txt" -Destination "package_asi\" -ErrorAction SilentlyContinue
             Compress-Archive -Path "package_asi\*" -DestinationPath "${{ steps.determine-artifact-names.outputs.ASI_ARTIFACT_NAME }}" -Force
           } else {
             Write-Error "No ASI file found at build\OBR-NoCarryWeight.asi"
@@ -125,7 +125,7 @@ jobs:
             Write-Output "Creating OBSE package with: OBR-NoCarryWeight.dll"
             New-Item -ItemType Directory -Path "package_obse" -Force
             Copy-Item -Path "build\OBR-NoCarryWeight.dll" -Destination "package_obse\"
-            Copy-Item -Path "README.md" -Destination "package_obse\" -ErrorAction SilentlyContinue
+            Copy-Item -Path "OBR-NoCarryWeight_Acknowledgements.txt" -Destination "package_obse\" -ErrorAction SilentlyContinue
             Compress-Archive -Path "package_obse\*" -DestinationPath "${{ steps.determine-artifact-names.outputs.OBSE_ARTIFACT_NAME }}" -Force
           } else {
             Write-Error "No DLL file found at build\OBR-NoCarryWeight.dll"
