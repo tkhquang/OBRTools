@@ -73,37 +73,31 @@ target_link_libraries(${PROJECT_NAME}-ASI PRIVATE
 
 # Set output name and properties for ASI
 set_target_properties(${PROJECT_NAME}-ASI PROPERTIES
-  OUTPUT_NAME "${PROJECT_NAME}"
+  OUTPUT_NAME "OBR-NoCarryWeight-temp-asi"
   SUFFIX ".asi"
   PREFIX ""
 )
 
-# Linker flags for size optimization (MinGW)
-if(NOT MSVC)
-  target_link_options(${PROJECT_NAME}-ASI PRIVATE
-    -Wl,--gc-sections
-    -static-libgcc
-    -static-libstdc++
-  )
-endif()
-
-# --- OBSE Target (.dll file) ---
-add_library(${PROJECT_NAME}-OBSE SHARED ${OBSE_SOURCES})
-
-target_include_directories(${PROJECT_NAME}-OBSE PRIVATE ${COMMON_INCLUDE_DIRS})
-
-target_link_libraries(${PROJECT_NAME}-OBSE PRIVATE
-  ${DETOURMODKIT_TARGET}
-  psapi
-  user32
-  kernel32
-)
-
 # Set output name and properties for OBSE
 set_target_properties(${PROJECT_NAME}-OBSE PROPERTIES
-  OUTPUT_NAME "${PROJECT_NAME}"
+  OUTPUT_NAME "OBR-NoCarryWeight-temp-dll"
   SUFFIX ".dll"
   PREFIX ""
+)
+
+# Post-build steps to rename to desired names
+add_custom_command(TARGET ${PROJECT_NAME}-ASI POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+  $<TARGET_FILE:${PROJECT_NAME}-ASI>
+  ${CMAKE_CURRENT_BINARY_DIR}/OBR-NoCarryWeight.asi
+  COMMENT "Renaming ASI output to final name"
+)
+
+add_custom_command(TARGET ${PROJECT_NAME}-OBSE POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+  $<TARGET_FILE:${PROJECT_NAME}-OBSE>
+  ${CMAKE_CURRENT_BINARY_DIR}/OBR-NoCarryWeight.dll
+  COMMENT "Renaming OBSE output to final name"
 )
 
 # Linker flags for size optimization (MinGW)
@@ -128,6 +122,6 @@ message(STATUS "OBR-NoCarryWeight (${PROJECT_VERSION}) Configuration Summary:")
 message(STATUS "  Generator:                   ${CMAKE_GENERATOR}")
 message(STATUS "  Build Type:                  ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Targets:")
-message(STATUS "    - ${PROJECT_NAME}-ASI      -> ${PROJECT_NAME}.asi")
-message(STATUS "    - ${PROJECT_NAME}-OBSE     -> ${PROJECT_NAME}.dll")
+message(STATUS "    - ${PROJECT_NAME}-ASI      -> OBR-NoCarryWeight.asi (via post-build copy)")
+message(STATUS "    - ${PROJECT_NAME}-OBSE     -> OBR-NoCarryWeight.dll (via post-build copy)")
 message(STATUS "---------------------------------------------------------------------")

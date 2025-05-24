@@ -83,10 +83,12 @@ jobs:
         run: |
           echo "Build directory contents:"
           ls -la build/
-          echo "Checking for ASI file:"
-          ls -la build/*.asi || echo "No ASI file found"
-          echo "Checking for DLL file:"
-          ls -la build/*.dll || echo "No DLL file found"
+          echo "Checking for final ASI file:"
+          ls -la build/OBR-NoCarryWeight.asi || echo "Final ASI file not found"
+          echo "Checking for final DLL file:"
+          ls -la build/OBR-NoCarryWeight.dll || echo "Final DLL file not found"
+          echo "Checking for temporary build artifacts:"
+          ls -la build/*temp* || echo "No temporary files found"
         shell: bash
 
       - name: Determine Artifact Names
@@ -102,15 +104,15 @@ jobs:
       - name: Create ASI ZIP Package
         working-directory: NoCarryWeight
         run: |
-          $asiFile = Get-ChildItem -Path "build" -Name "*.asi" | Select-Object -First 1
-          if ($asiFile) {
-            Write-Output "Creating ASI package with: $asiFile"
+          # Look for the final renamed ASI file
+          if (Test-Path "build\OBR-NoCarryWeight.asi") {
+            Write-Output "Creating ASI package with: OBR-NoCarryWeight.asi"
             New-Item -ItemType Directory -Path "package_asi" -Force
-            Copy-Item -Path "build\$asiFile" -Destination "package_asi\"
+            Copy-Item -Path "build\OBR-NoCarryWeight.asi" -Destination "package_asi\"
             Copy-Item -Path "README.md" -Destination "package_asi\" -ErrorAction SilentlyContinue
             Compress-Archive -Path "package_asi\*" -DestinationPath "${{ steps.determine-artifact-names.outputs.ASI_ARTIFACT_NAME }}" -Force
           } else {
-            Write-Error "No ASI file found in build directory"
+            Write-Error "No ASI file found at build\OBR-NoCarryWeight.asi"
             exit 1
           }
         shell: pwsh
@@ -118,15 +120,15 @@ jobs:
       - name: Create OBSE ZIP Package
         working-directory: NoCarryWeight
         run: |
-          $dllFile = Get-ChildItem -Path "build" -Name "*.dll" | Select-Object -First 1
-          if ($dllFile) {
-            Write-Output "Creating OBSE package with: $dllFile"
+          # Look for the final renamed DLL file
+          if (Test-Path "build\OBR-NoCarryWeight.dll") {
+            Write-Output "Creating OBSE package with: OBR-NoCarryWeight.dll"
             New-Item -ItemType Directory -Path "package_obse" -Force
-            Copy-Item -Path "build\$dllFile" -Destination "package_obse\"
+            Copy-Item -Path "build\OBR-NoCarryWeight.dll" -Destination "package_obse\"
             Copy-Item -Path "README.md" -Destination "package_obse\" -ErrorAction SilentlyContinue
             Compress-Archive -Path "package_obse\*" -DestinationPath "${{ steps.determine-artifact-names.outputs.OBSE_ARTIFACT_NAME }}" -Force
           } else {
-            Write-Error "No DLL file found in build directory"
+            Write-Error "No DLL file found at build\OBR-NoCarryWeight.dll"
             exit 1
           }
         shell: pwsh
