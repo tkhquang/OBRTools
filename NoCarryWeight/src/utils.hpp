@@ -9,7 +9,7 @@
 #include <string>
 
 #include <obse64/PluginAPI.h>
-#include <DetourModKit/filesystem_utils.hpp>
+#include <DetourModKit.hpp>
 
 // Forward declarations of externals
 extern OBSEMessagingInterface *g_ObseMessage;
@@ -19,7 +19,7 @@ extern OBSEMessagingInterface *g_ObseMessage;
  */
 inline std::string getPluginDirectory()
 {
-    std::string runtimeDirectory = DetourModKit::Filesystem::getRuntimeDirectory();
+    std::string runtimeDirectory = DMKFilesystem::getRuntimeDirectory();
 
     // Check if we're running under OBSE
     if (g_ObseMessage)

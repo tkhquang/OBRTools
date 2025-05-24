@@ -7,7 +7,7 @@
 
 #include <string>
 #include <array>
-#include "version.h"
+#include "version.hpp"
 
 namespace Constants
 {

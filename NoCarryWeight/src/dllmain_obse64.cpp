@@ -2,10 +2,10 @@
  * @file dllmain_obse64.cpp
  * @brief Entry point for OBSE loader version
  */
-#include "mod_core.h"
+#include "mod_core.hpp"
 
 #include <windows.h>
-#include <DetourModKit/logger.hpp>
+#include <DetourModKit.hpp>
 
 #include <obse64/PluginAPI.h>
 // #include <obse64_common/obse64_version.h>
@@ -42,7 +42,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID)
 
     case DLL_PROCESS_DETACH:
         CleanupMod();
-        DetourModKit::Logger::getInstance().log(DetourModKit::LOG_INFO, "DLL detached");
+        DMKLogger::getInstance().log(DMKLogLevel::LOG_INFO, "DLL detached");
         break;
     }
     return TRUE;
