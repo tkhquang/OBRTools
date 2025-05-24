@@ -12,8 +12,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(MSVC)
   add_compile_options(/W4)
 else()
-  # GCC/Clang/MinGW specific flags
-  add_compile_options(-Wall -Wextra -Os -flto -ffunction-sections -fdata-sections)
+  # GCC/Clang/MinGW specific flags - remove -flto to avoid linking issues
+  add_compile_options(-Wall -Wextra -Os -ffunction-sections -fdata-sections)
 endif()
 
 # --- Windows Definitions ---
@@ -30,7 +30,14 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/DetourModKit/CMakeLists.txt")
   message(STATUS "Configuring DetourModKit from: external/DetourModKit")
   add_subdirectory(external/DetourModKit)
-  set(DETOURMODKIT_TARGET DetourModKit)
+
+  # Use the exact target name from DetourModKit
+  if(TARGET DetourModKit)
+    set(DETOURMODKIT_TARGET DetourModKit)
+    message(STATUS "DetourModKit target found: ${DETOURMODKIT_TARGET}")
+  else()
+    message(FATAL_ERROR "DetourModKit target not created by subdirectory")
+  endif()
 else()
   message(FATAL_ERROR "DetourModKit not found at 'external/DetourModKit'. "
     "Please ensure the submodule is initialized: "
@@ -67,7 +74,7 @@ add_library(${PROJECT_NAME}-ASI SHARED ${ASI_SOURCES})
 target_include_directories(${PROJECT_NAME}-ASI PRIVATE ${COMMON_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME}-ASI PRIVATE
-  ${DETOURMODKIT_TARGET}
+  DetourModKit
   psapi
   user32
   kernel32
@@ -95,7 +102,7 @@ add_library(${PROJECT_NAME}-OBSE SHARED ${OBSE_SOURCES})
 target_include_directories(${PROJECT_NAME}-OBSE PRIVATE ${COMMON_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME}-OBSE PRIVATE
-  ${DETOURMODKIT_TARGET}
+  DetourModKit
   psapi
   user32
   kernel32
