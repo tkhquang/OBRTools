@@ -4,3 +4,6 @@
 [submodule "NoCarryWeight/external/minhook"]
 	path = NoCarryWeight/external/minhook
 	url = https://github.com/TsudaKageyu/minhook.git
+[submodule "NoCarryWeight/external/DetourModKit"]
+	path = NoCarryWeight/external/DetourModKit
+	url = https://github.com/tkhquang/DetourModKit.git
