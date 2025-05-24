@@ -4,16 +4,16 @@
  */
 
 #include "mod_core.h"
-#include "aob_scanner.h"
 #include "constants.h"
-#include "logger.h"
 #include "version.h"
 #include "utils.h"
 
 #include <windows.h>
 #include <psapi.h>
 
-#include <MinHook.h>
+// DetourModKit includes
+#include <DetourModKit/logger.hpp>
+#include <DetourModKit/hook_manager.hpp>
 
 // Global handles
 HMODULE g_GameHandle = nullptr;
@@ -21,6 +21,9 @@ HMODULE g_GameHandle = nullptr;
 // Function pointer for the original weight calculation function
 typedef void (*OriginalFunction_t)(void *playerData);
 OriginalFunction_t g_OriginalFunction = nullptr;
+
+// Hook ID for management
+std::string g_HookId;
 
 // Hook function to set the weight to zero
 void HookFunction(void *playerData)
@@ -31,93 +34,100 @@ void HookFunction(void *playerData)
         *(float *)(reinterpret_cast<uintptr_t>(playerData) + 0x10) = 0.0f;
     }
     // Call the original function
-    g_OriginalFunction(playerData);
+    if (g_OriginalFunction)
+    {
+        g_OriginalFunction(playerData);
+    }
 }
 
 bool InitializeMod()
 {
-    auto &logger = Logger::getInstance();
+    // Configure DetourModKit Logger
+    DetourModKit::Logger::configure("OBR-NoCarryWeight", "OBR-NoCarryWeight.log", "%Y-%m-%d %H:%M:%S");
+    auto &logger = DetourModKit::Logger::getInstance();
+    logger.setLogLevel(DetourModKit::LOG_INFO);
+
+    // Log version information
     Version::logVersionInfo();
 
     std::string plugin_directory = getPluginDirectory();
-    logger.log(LOG_INFO, "Plugin Directory: " + plugin_directory);
-
-    // Initialize MinHook library
-    if (MH_Initialize() != MH_OK)
-    {
-        logger.log(LOG_ERROR, "Failed to initialize MinHook");
-        return false;
-    }
+    logger.log(DetourModKit::LOG_INFO, "Plugin Directory: " + plugin_directory);
 
     // Try to find the game module - try each possible module name in sequence
-    logger.log(LOG_INFO, "Looking for game executable...");
+    logger.log(DetourModKit::LOG_INFO, "Looking for game executable...");
     for (const char *moduleName : Constants::MODULE_NAMES)
     {
         g_GameHandle = GetModuleHandleA(moduleName);
         if (g_GameHandle)
         {
-            logger.log(LOG_INFO, "Game module found: " + std::string(moduleName));
+            logger.log(DetourModKit::LOG_INFO, "Game module found: " + std::string(moduleName));
             break;
         }
     }
 
     if (!g_GameHandle)
     {
-        logger.log(LOG_ERROR, "Failed to get module handle for any supported game version");
+        logger.log(DetourModKit::LOG_ERROR, "Failed to get module handle for any supported game version");
         return false;
     }
 
     MODULEINFO moduleInfo;
     if (!GetModuleInformation(GetCurrentProcess(), g_GameHandle, &moduleInfo, sizeof(moduleInfo)))
     {
-        logger.log(LOG_ERROR, "Failed to get module information");
+        logger.log(DetourModKit::LOG_ERROR, "Failed to get module information");
         return false;
     }
 
-    BYTE *moduleBase = static_cast<BYTE *>(moduleInfo.lpBaseOfDll);
+    uintptr_t moduleBase = reinterpret_cast<uintptr_t>(moduleInfo.lpBaseOfDll);
     size_t moduleSize = moduleInfo.SizeOfImage;
 
-    const std::string &functionAOB = Constants::CARRY_WEIGHT_AOB;
-    std::vector<BYTE> pattern = parseAOB(functionAOB);
+    // Create hook using DetourModKit's HookManager with AOB scanning
+    auto &hookManager = DetourModKit::HookManager::getInstance();
 
-    if (pattern.empty())
+    DetourModKit::HookConfig config;
+    config.autoEnable = true;
+
+    // Use create_inline_hook_aob for automatic AOB scanning and hooking
+    g_HookId = hookManager.create_inline_hook_aob(
+        "CarryWeightHook",
+        moduleBase,
+        moduleSize,
+        Constants::CARRY_WEIGHT_AOB,
+        0, // No offset from pattern start
+        reinterpret_cast<void *>(&HookFunction),
+        reinterpret_cast<void **>(&g_OriginalFunction),
+        config);
+
+    if (g_HookId.empty())
     {
-        logger.log(LOG_ERROR, "Invalid AOB pattern for function");
+        logger.log(DetourModKit::LOG_ERROR, "Failed to create hook - check AOB pattern or target function");
         return false;
     }
 
-    // Search for the pattern in the module
-    BYTE *functionAddress = FindPattern(moduleBase, moduleSize, pattern);
-    if (!functionAddress)
-    {
-        logger.log(LOG_ERROR, "Function pattern not found");
-        return false;
-    }
+    logger.log(DetourModKit::LOG_INFO, "Hook created successfully: " + g_HookId);
 
-    logger.log(LOG_INFO, "Function found at " + format_address(reinterpret_cast<uintptr_t>(functionAddress)));
-
-    // Create and enable the hook
-    if (MH_CreateHook(functionAddress, reinterpret_cast<LPVOID>(&HookFunction),
-                      reinterpret_cast<LPVOID *>(&g_OriginalFunction)) != MH_OK)
-    {
-        logger.log(LOG_ERROR, "Failed to create hook");
-        return false;
-    }
-
-    if (MH_EnableHook(functionAddress) != MH_OK)
-    {
-        logger.log(LOG_ERROR, "Failed to enable hook");
-        return false;
-    }
-
-    logger.log(LOG_INFO, "Mod enabled successfully");
+    logger.log(DetourModKit::LOG_INFO, "Mod enabled successfully");
     return true;
 }
 
 void CleanupMod()
 {
-    // Disable hooks and uninitialize MinHook
-    MH_DisableHook(MH_ALL_HOOKS);
-    MH_Uninitialize();
-    Logger::getInstance().log(LOG_INFO, "Mod disabled");
+    auto &logger = DetourModKit::Logger::getInstance();
+
+    // Remove hooks using DetourModKit's HookManager
+    if (!g_HookId.empty())
+    {
+        auto &hookManager = DetourModKit::HookManager::getInstance();
+        if (hookManager.remove_hook(g_HookId))
+        {
+            logger.log(DetourModKit::LOG_INFO, "Hook removed successfully");
+        }
+        else
+        {
+            logger.log(DetourModKit::LOG_WARNING, "Failed to remove hook or hook already removed");
+        }
+        g_HookId.clear();
+    }
+
+    logger.log(DetourModKit::LOG_INFO, "Mod disabled");
 }

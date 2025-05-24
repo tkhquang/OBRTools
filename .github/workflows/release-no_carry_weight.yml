@@ -1,0 +1,219 @@
+name: OBR-NoCarryWeight - Build and Release
+
+permissions:
+  contents: write
+  actions: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g., 0.3.0, 0.3.1-beta)"
+        required: true
+        type: string
+      release_title:
+        description: "Title for the release (e.g., 'DetourModKit Refactor')"
+        required: false
+        type: string
+      changelog:
+        description: "Changelog for this release (Markdown format)"
+        required: false
+        type: string
+        default: "- Bug fixes and improvements."
+      prerelease:
+        description: "Mark as a pre-release?"
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: Build OBR-NoCarryWeight (MinGW)
+    runs-on: windows-latest
+    outputs:
+      asi_artifact_name: ${{ steps.determine-artifact-names.outputs.ASI_ARTIFACT_NAME }}
+      obse_artifact_name: ${{ steps.determine-artifact-names.outputs.OBSE_ARTIFACT_NAME }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+
+      - name: Cache MinGW
+        id: cache-mingw
+        uses: actions/cache@v4
+        with:
+          path: C:\ProgramData\chocolatey\lib\mingw
+          key: ${{ runner.os }}-mingw-13.2.0-v2
+
+      - name: Install MinGW (if not cached)
+        if: steps.cache-mingw.outputs.cache-hit != 'true'
+        run: choco install mingw --version=13.2.0 --yes --force --no-progress
+        shell: powershell
+
+      - name: Add MinGW to PATH
+        run: echo "C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: powershell
+
+      - name: Install CMake
+        run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --yes --force --no-progress
+        shell: powershell
+
+      - name: Verify Tools
+        run: |
+          echo "--- Verifying g++ (MinGW) ---" && g++ --version
+          echo "--- Verifying make (MinGW) ---" && mingw32-make --version || make --version
+          echo "--- Verifying cmake ---" && cmake --version
+        shell: bash
+
+      - name: Configure with CMake
+        working-directory: NoCarryWeight
+        run: |
+          cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        shell: bash
+
+      - name: Build with CMake
+        working-directory: NoCarryWeight
+        run: cmake --build build --config Release --parallel $(nproc || echo 2)
+        shell: bash
+
+      - name: Verify Build Output
+        working-directory: NoCarryWeight
+        run: |
+          echo "Build directory contents:"
+          ls -la build/
+          echo "Checking for ASI file:"
+          ls -la build/*.asi || echo "No ASI file found"
+          echo "Checking for DLL file:"
+          ls -la build/*.dll || echo "No DLL file found"
+        shell: bash
+
+      - name: Determine Artifact Names
+        id: determine-artifact-names
+        run: |
+          $version_safe = "${{ github.event.inputs.version }}".Replace("+", "_plus_")
+          $asi_name = "OBR-NoCarryWeight_ASI_v${version_safe}.zip"
+          $obse_name = "OBR-NoCarryWeight_OBSE_v${version_safe}.zip"
+          echo "ASI_ARTIFACT_NAME=$asi_name" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          echo "OBSE_ARTIFACT_NAME=$obse_name" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Create ASI ZIP Package
+        working-directory: NoCarryWeight
+        run: |
+          $asiFile = Get-ChildItem -Path "build" -Name "*.asi" | Select-Object -First 1
+          if ($asiFile) {
+            Write-Output "Creating ASI package with: $asiFile"
+            New-Item -ItemType Directory -Path "package_asi" -Force
+            Copy-Item -Path "build\$asiFile" -Destination "package_asi\"
+            Copy-Item -Path "README.md" -Destination "package_asi\" -ErrorAction SilentlyContinue
+            Compress-Archive -Path "package_asi\*" -DestinationPath "${{ steps.determine-artifact-names.outputs.ASI_ARTIFACT_NAME }}" -Force
+          } else {
+            Write-Error "No ASI file found in build directory"
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Create OBSE ZIP Package
+        working-directory: NoCarryWeight
+        run: |
+          $dllFile = Get-ChildItem -Path "build" -Name "*.dll" | Select-Object -First 1
+          if ($dllFile) {
+            Write-Output "Creating OBSE package with: $dllFile"
+            New-Item -ItemType Directory -Path "package_obse" -Force
+            Copy-Item -Path "build\$dllFile" -Destination "package_obse\"
+            Copy-Item -Path "README.md" -Destination "package_obse\" -ErrorAction SilentlyContinue
+            Compress-Archive -Path "package_obse\*" -DestinationPath "${{ steps.determine-artifact-names.outputs.OBSE_ARTIFACT_NAME }}" -Force
+          } else {
+            Write-Error "No DLL file found in build directory"
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Upload ASI Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: asi-package
+          path: NoCarryWeight/${{ steps.determine-artifact-names.outputs.ASI_ARTIFACT_NAME }}
+
+      - name: Upload OBSE Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: obse-package
+          path: NoCarryWeight/${{ steps.determine-artifact-names.outputs.OBSE_ARTIFACT_NAME }}
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - name: Download ASI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: asi-package
+          path: asi_package_dir
+
+      - name: Download OBSE artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: obse-package
+          path: obse_package_dir
+
+      - name: List downloaded artifacts
+        run: |
+          echo "--- ASI Package Contents ---"
+          ls -R asi_package_dir
+          echo "--- OBSE Package Contents ---"
+          ls -R obse_package_dir
+
+      - name: Prepare release files
+        id: file_list
+        run: |
+          ASI_ZIP_NAME="${{ needs.build.outputs.asi_artifact_name }}"
+          OBSE_ZIP_NAME="${{ needs.build.outputs.obse_artifact_name }}"
+
+          FILES_STRING="asi_package_dir/$ASI_ZIP_NAME,obse_package_dir/$OBSE_ZIP_NAME"
+
+          echo "Files to release: $FILES_STRING"
+          echo "FILES_TO_RELEASE=$FILES_STRING" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.file_list.outputs.FILES_TO_RELEASE }}
+          name: OBR-NoCarryWeight v${{ github.event.inputs.version }}
+          tag_name: NoCarryWeight-v${{ github.event.inputs.version }}
+          body: |
+            **Release Title:** ${{ github.event.inputs.release_title }}
+            **Version:** ${{ github.event.inputs.version }}
+
+            **Changelog:**
+            ${{ github.event.inputs.changelog }}
+
+            **Artifacts:**
+            This release includes both ASI loader and OBSE plugin versions:
+
+            *   `${{ needs.build.outputs.asi_artifact_name }}`: ASI Loader version. Drop the .asi file into your game directory.
+            *   `${{ needs.build.outputs.obse_artifact_name }}`: OBSE Plugin version. Install into `OBSE/Plugins/` directory.
+
+            **Installation:**
+
+            **ASI Loader:**
+            1. Install Ultimate ASI Loader or similar
+            2. Drop `OBR-NoCarryWeight.asi` into your game's root directory
+
+            **OBSE Plugin:**
+            1. Install OBSE64
+            2. Place `OBR-NoCarryWeight.dll` in `OBSE/Plugins/` folder
+
+            **What this mod does:**
+            Removes carry weight limitations in Oblivion Remastered by setting your character's weight to 0 when it would normally be calculated.
+
+            Built with DetourModKit for improved stability and compatibility.
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

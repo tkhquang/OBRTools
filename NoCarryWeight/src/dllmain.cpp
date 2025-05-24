@@ -3,9 +3,9 @@
  * @brief Entry point for ASI loader version
  */
 #include "mod_core.h"
-#include "logger.h"
 
 #include <windows.h>
+#include <DetourModKit/logger.hpp>
 
 #include <obse64/PluginAPI.h>
 
@@ -37,7 +37,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID)
 
     case DLL_PROCESS_DETACH:
         CleanupMod();
-        Logger::getInstance().log(LOG_INFO, "DLL detached");
+        DetourModKit::Logger::getInstance().log(DetourModKit::LOG_INFO, "DLL detached");
         break;
     }
     return TRUE;
