@@ -34,9 +34,6 @@ namespace Constants
         return std::string(MOD_NAME) + LOG_FILE_EXTENSION;
     }
 
-    // Default configuration values
-    constexpr enum LogLevel DEFAULT_LOG_LEVEL = LOG_INFO;
-
     // Target game modules - array of possible module names to try
     constexpr std::array<const char *, 2> MODULE_NAMES = {
         "OblivionRemastered-Win64-Shipping.exe", // Steam version
