@@ -57,6 +57,8 @@ set(OBSE_SOURCES
 set(COMMON_INCLUDE_DIRS
   src
   external/obse64
+
+  # DetourModKit include path no longer needed after CMake fix
 )
 
 # --- ASI Target (.asi file) ---
@@ -76,6 +78,27 @@ set_target_properties(${PROJECT_NAME}-ASI PROPERTIES
   OUTPUT_NAME "OBR-NoCarryWeight-temp-asi"
   SUFFIX ".asi"
   PREFIX ""
+)
+
+# Linker flags for size optimization (MinGW)
+if(NOT MSVC)
+  target_link_options(${PROJECT_NAME}-ASI PRIVATE
+    -Wl,--gc-sections
+    -static-libgcc
+    -static-libstdc++
+  )
+endif()
+
+# --- OBSE Target (.dll file) ---
+add_library(${PROJECT_NAME}-OBSE SHARED ${OBSE_SOURCES})
+
+target_include_directories(${PROJECT_NAME}-OBSE PRIVATE ${COMMON_INCLUDE_DIRS})
+
+target_link_libraries(${PROJECT_NAME}-OBSE PRIVATE
+  ${DETOURMODKIT_TARGET}
+  psapi
+  user32
+  kernel32
 )
 
 # Set output name and properties for OBSE
