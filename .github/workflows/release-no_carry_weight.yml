@@ -78,22 +78,6 @@ jobs:
         run: cmake --build build --config Release --parallel $(nproc || echo 2)
         shell: bash
 
-      - name: Debug Build Output
-        working-directory: NoCarryWeight
-        run: |
-          echo "=== Debug: Build tree contents ==="
-          find build -name "*.a" -o -name "*.lib" -o -name "*.dll" -o -name "*.asi" | head -20
-          echo "=== Debug: DetourModKit library ==="
-          if [ -f "build/external/DetourModKit/libDetourModKit.a" ]; then
-            echo "DetourModKit library found"
-            nm build/external/DetourModKit/libDetourModKit.a | grep -i "logger" | head -5 || echo "No logger symbols found"
-          else
-            echo "DetourModKit library NOT found"
-          fi
-          echo "=== Debug: SafetyHook library ==="
-          find build -name "*safetyhook*" -type f | head -5
-        shell: bash
-
       - name: Verify Build Output
         working-directory: NoCarryWeight
         run: |
